@@ -1,4 +1,5 @@
-﻿using PhoneBook.Commands;
+﻿using PhoneBook.Base;
+using PhoneBook.Commands;
 using PhoneBook.Models;
 using System;
 using System.Collections.Generic;
@@ -6,13 +7,13 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Windows;
 using System.Windows.Input;
 
 namespace PhoneBook.ViewModels
 {
-    public class MainViewModel : INotifyPropertyChanged
+    public class MainViewModel : ObservableObject
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
 
         private string _name = string.Empty;
         private string _phone = string.Empty;
@@ -23,31 +24,19 @@ namespace PhoneBook.ViewModels
         public string Name
         {
             get => _name;
-            set
-            {
-                _name = value;
-                OnPropertyChanged();
-            }
+            set => Set(ref _name, value);
         }
 
         public string Phone
         {
             get => _phone;
-            set 
-            { 
-                _phone = value;
-                OnPropertyChanged();
-            }
+            set => Set(ref _phone, value);
         }
 
         public Contact SelectedContact
         {
             get => _selectedContact;
-            set 
-            {
-                _selectedContact = value;
-                OnPropertyChanged();
-            }
+            set => Set(ref _selectedContact, value);
         }
 
         public ICommand AddContactCommand { get; }
@@ -56,25 +45,23 @@ namespace PhoneBook.ViewModels
 
         public MainViewModel()
         {
-            Contacts = new();
+            Contacts = [];
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
             RemoveContactCommand = new RelayCommand(RemoveContact, CanRemoveContact);
         }
 
         private void AddContact()
         {
-            try
+            var contact = new Contact { Name = Name, Phone = Phone };
+            if (contact.IsValid())
             {
-                var contact = new Contact { Name = Name, Phone = Phone };
                 Contacts.Add(contact);
                 Name = string.Empty;
                 Phone = string.Empty;
-
             }
-            catch (ArgumentException ex)
+            else
             {
-                // Handle validation errors (e.g., show a message to the user)
-                System.Windows.MessageBox.Show(ex.Message); // temporary error handling, consider a more user-friendly approach
+                MessageBox.Show("Имя не должно быть пустым, а номер должен соответствовать формату +7XXXXXXXXXX.", "Некорректные данные");
             }
         }
 
@@ -96,11 +83,5 @@ namespace PhoneBook.ViewModels
         {
             return SelectedContact != null;
         }
-
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-        {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-        }
-
     }
 }
