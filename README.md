@@ -91,15 +91,31 @@ using System.Text;
 
 namespace PhoneBook.Base
 {
+    /// <summary>
+    /// Базовый класс для объектов, поддерживающих уведомление об изменении свойств, реализующий интерфейс <see cref="INotifyPropertyChanged"/> и предоставляющий методы для обновления свойств и уведомления об их изменении.
+    /// </summary>
     public class ObservableObject : INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
+        /// <summary>
+        /// Метод для вызова события <see cref="PropertyChanged"/> при изменении свойства, который принимает имя измененного свойства и уведомляет подписчиков об этом изменении.
+        /// </summary>
+        /// <param name="propertyName">Имя измененного свойства. По умолчанию используется имя вызывающего свойства.</param>
         protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
         {
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
         }
 
+        /// <summary>
+        /// Метод для обновления значения свойства и вызова события <see cref="PropertyChanged"/> при изменении, который принимает ссылку на поле,
+        /// новое значение и имя свойства, и обновляет значение поля, если оно отличается от текущего, и уведомляет об этом изменение.
+        /// </summary>
+        /// <typeparam name="T">Тип свойства.</typeparam>
+        /// <param name="field">Ссылка на поле, которое хранит значение свойства.</param>
+        /// <param name="value">Новое значение свойства.</param>
+        /// <param name="propertyName">Имя измененного свойства. По умолчанию используется имя вызывающего свойства.</param>
+        /// <returns>Возвращает <see langword="true"/>, если значение свойства было изменено, иначе <see langword="false"/>.</returns>
         protected bool Set<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
         {
             if (EqualityComparer<T>.Default.Equals(field, value))
@@ -127,6 +143,12 @@ using System.Windows.Input;
 namespace PhoneBook.Commands
 {
     // no parameter
+    /// <summary>
+    /// Класс RelayCommand, реализующий интерфейс <see cref="ICommand"/>, который позволяет создавать команды для привязки к элементам управления в WPF,
+    /// не требующие параметров.
+    /// </summary>
+    /// <param name="execute">Делегат, представляющий метод, который будет выполнен при вызове команды.</param>
+    /// <param name="canExecute">Делегат, представляющий метод, который определяет, может ли команда выполняться.</param>
     public class RelayCommand(Action execute, Func<bool>? canExecute = null) : ICommand
     {
         private readonly Action _execute = execute;
@@ -137,6 +159,7 @@ namespace PhoneBook.Commands
         {
             if (CanExecute(parameter)) _execute.Invoke();
         }
+
         public event EventHandler? CanExecuteChanged //Автообновление CanExecute
         {
             add => CommandManager.RequerySuggested += value;
@@ -147,10 +170,16 @@ namespace PhoneBook.Commands
 }
 
 // with parameter
+/// <summary>
+/// Класс RelayCommand<T>, реализующий интерфейс <see cref="ICommand"/>, который позволяет создавать команды для привязки к элементам управления в WPF,
+/// требующие параметры.
+/// </summary>
+/// <typeparam name="T">Тип параметра команды.</typeparam>
+/// <param name="execute">Делегат, представляющий метод, который будет выполнен при вызове команды.</param>
+/// <param name="canExecute">Делегат, представляющий метод, который определяет, может ли команда выполняться.</param>
 public class RelayCommand<T>(Action<object?> execute, Predicate<object?>? canExecute = null) : ICommand
 {
-    private readonly Action<object?> _execute = execute ?? throw new
-    ArgumentNullException(nameof(execute));
+    private readonly Action<object?> _execute = execute ?? throw new ArgumentNullException(nameof(execute));
     private readonly Predicate<object?>? _canExecute = canExecute;
     public bool CanExecute(object? parameter)
         => _canExecute?.Invoke(parameter) ?? true;
@@ -158,6 +187,7 @@ public class RelayCommand<T>(Action<object?> execute, Predicate<object?>? canExe
     {
         if (CanExecute(parameter)) _execute.Invoke(parameter);
     }
+
     public event EventHandler? CanExecuteChanged
     {
         add => CommandManager.RequerySuggested += value;
@@ -181,6 +211,9 @@ using System.Windows;
 
 namespace PhoneBook.Models
 {
+    /// <summary>
+    /// Модель контакта для телефонной книги, содержащая имя и номер телефона с методом валидации данных.
+    /// </summary>
     public class Contact
     {
         private string _name = string.Empty;
@@ -198,6 +231,12 @@ namespace PhoneBook.Models
             set => _phone = value;
         }
 
+        /// <summary>
+        /// Определяет, содержит ли объект допустимые значения для имени и номера телефона в формате российского номера.
+        /// </summary>
+        /// <remarks>Метод проверяет только базовую корректность формата. Дополнительная валидация номера телефона (например, существование номера) не выполняется.</remarks>
+        /// <returns>Значение <see langword="true"/>, если имя не является пустым или состоящим только из пробелов и номер
+        /// телефона соответствует формату "+7" с десятью цифрами; в противном случае — <see langword="false"/>.</returns>
         public bool IsValid()
         {
             return !string.IsNullOrWhiteSpace(Name) && Regex.IsMatch(Phone, @"^\+7\d{10}$");
@@ -247,6 +286,12 @@ using System.Windows.Input;
 
 namespace PhoneBook.ViewModels
 {
+    /// <summary>
+    /// Класс MainViewModel, который наследуется от <see cref="ObservableObject"/> и представляет собой модель представления для главного окна приложения телефонной книги, 
+    /// содержащий свойства для имени, номера телефона, выбранного контакта и коллекцию контактов, 
+    /// а также команды для добавления и удаления контактов с соответствующими методами проверки возможности выполнения этих действий.
+    /// </summary>
+    /// /// <remarks>Валидация контакта происходит с помощью метода <see cref="Contact.IsValid"/> из класса <see cref="Contact"/></remarks>
     public class MainViewModel : ObservableObject
     {
 
@@ -280,11 +325,16 @@ namespace PhoneBook.ViewModels
 
         public MainViewModel()
         {
+            // Инициализация коллекции контактов и команд для добавления и удаления контактов
             Contacts = [];
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
             RemoveContactCommand = new RelayCommand(RemoveContact, CanRemoveContact);
         }
 
+        /// <summary>
+        /// Команда для добавления контакта, которая создает новый объект <see cref="Contact"/> с текущими значениями имени и телефона,
+        /// проверяет его на валидность с помощью метода <see cref="Contact.IsValid"/> и добавляет его в коллекцию контактов, если данные корректны.
+        /// </summary>
         private void AddContact()
         {
             var contact = new Contact { Name = Name, Phone = Phone };
@@ -305,6 +355,9 @@ namespace PhoneBook.ViewModels
             return !string.IsNullOrWhiteSpace(Name) && !string.IsNullOrWhiteSpace(Phone);
         }
 
+        /// <summary>
+        /// Команда для удаления контакта, которая удаляет выбранный контакт из коллекции контактов, если он не равен <see langword="null"/>, и сбрасывает <see cref="SelectedContact"/> на <see langword="null"/>.
+        /// </summary>
         private void RemoveContact()
         {
             if (SelectedContact != null)
@@ -329,7 +382,8 @@ namespace PhoneBook.ViewModels
 <a id='mainwindowxaml'></a>
 
 ```xml
-﻿<Window x:Class="PhoneBook.Views.MainWindow"
+﻿<!--Объявление MainViewModel как xmlns:vm в Window-->
+<Window x:Class="PhoneBook.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
@@ -339,6 +393,7 @@ namespace PhoneBook.ViewModels
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
+    <!--Подключение MainViewModel-->
     <Window.DataContext>
         <vm:MainViewModel/>
     </Window.DataContext>
@@ -370,6 +425,7 @@ namespace PhoneBook.ViewModels
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 
+        <!--Привязка свойства Name из MainViewModel к TextBox-->
         <TextBox Grid.Row="1" Grid.Column="1"
                  Margin="0 5"
                  ToolTip="Имя"
@@ -382,6 +438,7 @@ namespace PhoneBook.ViewModels
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 
+        <!--Привязка свойства Phone из MainViewModel к TextBox-->
         <TextBox Grid.Row="2" Grid.Column="1"
                  Margin="0 5" 
                  ToolTip="Номер телефона"
@@ -393,6 +450,8 @@ namespace PhoneBook.ViewModels
                     Orientation="Horizontal" 
                     HorizontalAlignment="Center"
                     Margin="0 5">
+            <!--Кнопки для добавления и удаления контактов-->
+            <!--К кнопкам привязаны команды из MainViewModel-->
             <Button Content="Добавить" 
                     Margin="0 0 5 0"
                     Command="{Binding AddContactCommand}"/>
@@ -400,6 +459,7 @@ namespace PhoneBook.ViewModels
                     Command="{Binding RemoveContactCommand}"/>
         </StackPanel>
 
+        <!--Привязка коллекции Contacts из MainViewModel к ListBox-->
         <ListBox Grid.Row="5" Grid.ColumnSpan="3"
                  ItemsSource="{Binding Contacts}"
                  SelectedItem="{Binding SelectedContact}"
