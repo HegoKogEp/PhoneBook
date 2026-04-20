@@ -4,7 +4,7 @@ using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Text;
 
-namespace PhoneBook.Base
+namespace PhoneBook.ViewModels.Base
 {
     /// <summary>
     /// Базовый класс для объектов, поддерживающих уведомление об изменении свойств, реализующий интерфейс <see cref="INotifyPropertyChanged"/> и предоставляющий методы для обновления свойств и уведомления об их изменении.

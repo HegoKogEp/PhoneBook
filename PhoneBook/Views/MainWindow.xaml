@@ -9,11 +9,6 @@
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
 
-    <!--Подключение MainViewModel-->
-    <Window.DataContext>
-        <vm:MainViewModel/>
-    </Window.DataContext>
-
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>

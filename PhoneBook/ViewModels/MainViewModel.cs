@@ -1,6 +1,7 @@
-﻿using PhoneBook.Base;
-using PhoneBook.Commands;
+﻿using PhoneBook.Commands;
 using PhoneBook.Models;
+using PhoneBook.Services;
+using PhoneBook.ViewModels.Base;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -20,6 +21,7 @@ namespace PhoneBook.ViewModels
     /// /// <remarks>Валидация контакта происходит с помощью метода <see cref="Contact.IsValid"/> из класса <see cref="Contact"/></remarks>
     public class MainViewModel : ObservableObject
     {
+        private readonly IDialogService _dialogService;
 
         private string _name = string.Empty;
         private string _phone = string.Empty;
@@ -49,9 +51,10 @@ namespace PhoneBook.ViewModels
 
         public ICommand RemoveContactCommand { get; }
 
-        public MainViewModel()
+        public MainViewModel(IDialogService dialogService)
         {
             // Инициализация коллекции контактов и команд для добавления и удаления контактов
+            _dialogService = dialogService;
             Contacts = [];
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
             RemoveContactCommand = new RelayCommand(RemoveContact, CanRemoveContact);
@@ -64,15 +67,23 @@ namespace PhoneBook.ViewModels
         private void AddContact()
         {
             var contact = new Contact { Name = Name, Phone = Phone };
+
+            if (Contacts.Any(c => c.Phone == contact.Phone))
+            {
+                _dialogService.ShowWarning("Контакт с таким номером телефона уже существует!", "Предупреждение");
+                return;
+            }
+
             if (contact.IsValid())
             {
                 Contacts.Add(contact);
                 Name = string.Empty;
                 Phone = string.Empty;
+                _dialogService.ShowInfo($"Контакт {contact.Name} добавлен.", "Контакт добавлен");
             }
             else
             {
-                MessageBox.Show("Имя не должно быть пустым, а номер должен соответствовать формату +7XXXXXXXXXX.", "Некорректные данные");
+                _dialogService.ShowError("Имя не должно быть пустым, а номер должен соответствовать формату +7XXXXXXXXXX.", "Некорректные данные");
             }
         }
 
@@ -82,14 +93,18 @@ namespace PhoneBook.ViewModels
         }
 
         /// <summary>
-        /// Команда для удаления контакта, которая удаляет выбранный контакт из коллекции контактов, если он не равен <see langword="null"/>, и сбрасывает <see cref="SelectedContact"/> на <see langword="null"/>.
+        /// Команда для удаления контакта, которая удаляет выбранный контакт из коллекции контактов, если он не равен <see langword="null"/>, 
+        /// и сбрасывает <see cref="SelectedContact"/> на <see langword="null"/>.
         /// </summary>
         private void RemoveContact()
         {
             if (SelectedContact != null)
             {
-                Contacts.Remove(SelectedContact);
-                SelectedContact = null;
+                if (_dialogService.ShowConfirmation($"Вы уверены, что хотите удалить контакт {SelectedContact.Name}?", "Подтверждение удаления"))
+                {
+                    _dialogService.ShowInfo($"Контакт {SelectedContact.Name} удален.", "Контакт удален");
+                    Contacts.Remove(SelectedContact);
+                }
             }
         }
 
