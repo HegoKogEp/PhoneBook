@@ -58,6 +58,10 @@ namespace PhoneBook
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Метод <see cref="OnStartup"/> , который вызывается при запуске приложения. Здесь мы настраиваем контейнер зависимостей и отображаем главное окно.
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -255,6 +259,9 @@ using System.Text;
 
 namespace PhoneBook.Services
 {
+    /// <summary>
+    /// Реализация интерфейса IDialogService для отображения диалогов в приложении. Использует стандартные MessageBox для показа сообщений и запросов подтверждения от пользователя.
+    /// </summary>
     public class DialogService : IDialogService
     {
         public void ShowInfo(string message, string title = "Информация")
@@ -292,6 +299,10 @@ using System.Text;
 
 namespace PhoneBook.Services
 {
+    /// <summary>
+    /// Интерфейс для отображения диалогов в приложении. Позволяет показывать информационные, 
+    /// ошибочные и предупреждающие сообщения, а также запрашивать подтверждение от пользователя.
+    /// </summary>
     public interface IDialogService
     {
         void ShowInfo(string message, string title = "Информация");
@@ -384,6 +395,7 @@ namespace PhoneBook.ViewModels
     /// /// <remarks>Валидация контакта происходит с помощью метода <see cref="Contact.IsValid"/> из класса <see cref="Contact"/></remarks>
     public class MainViewModel : ObservableObject
     {
+        // Внедрение зависимости для отображения диалогов
         private readonly IDialogService _dialogService;
 
         private string _name = string.Empty;
@@ -417,6 +429,7 @@ namespace PhoneBook.ViewModels
         public MainViewModel(IDialogService dialogService)
         {
             // Инициализация коллекции контактов и команд для добавления и удаления контактов
+            // Внедрение зависимости для отображения диалогов
             _dialogService = dialogService;
             Contacts = [];
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
@@ -433,6 +446,7 @@ namespace PhoneBook.ViewModels
 
             if (Contacts.Any(c => c.Phone == contact.Phone))
             {
+                // Если контакт с таким номером телефона уже существует, отображаем предупреждение и не добавляем новый контакт
                 _dialogService.ShowWarning("Контакт с таким номером телефона уже существует!", "Предупреждение");
                 return;
             }
@@ -442,10 +456,12 @@ namespace PhoneBook.ViewModels
                 Contacts.Add(contact);
                 Name = string.Empty;
                 Phone = string.Empty;
+                // Отображаем информационное сообщение о том, что контакт был успешно добавлен
                 _dialogService.ShowInfo($"Контакт {contact.Name} добавлен.", "Контакт добавлен");
             }
             else
             {
+                // Если данные некорректные, отображаем сообщение об ошибке
                 _dialogService.ShowError("Имя не должно быть пустым, а номер должен соответствовать формату +7XXXXXXXXXX.", "Некорректные данные");
             }
         }
@@ -463,8 +479,10 @@ namespace PhoneBook.ViewModels
         {
             if (SelectedContact != null)
             {
+                // Запрашиваем подтверждение у пользователя перед удалением контакта
                 if (_dialogService.ShowConfirmation($"Вы уверены, что хотите удалить контакт {SelectedContact.Name}?", "Подтверждение удаления"))
                 {
+                    // Если пользователь подтвердил удаление, отображаем информационное сообщение о том, что контакт был удален, и удаляем его из коллекции контактов
                     _dialogService.ShowInfo($"Контакт {SelectedContact.Name} удален.", "Контакт удален");
                     Contacts.Remove(SelectedContact);
                 }
