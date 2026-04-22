@@ -4,6 +4,9 @@ using System.Text;
 
 namespace PhoneBook.Services
 {
+    /// <summary>
+    /// Реализация интерфейса IDialogService для отображения диалогов в приложении. Использует стандартные MessageBox для показа сообщений и запросов подтверждения от пользователя.
+    /// </summary>
     public class DialogService : IDialogService
     {
         public void ShowInfo(string message, string title = "Информация")

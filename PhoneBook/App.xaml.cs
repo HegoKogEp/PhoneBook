@@ -13,6 +13,10 @@ namespace PhoneBook
     /// </summary>
     public partial class App : Application
     {
+        /// <summary>
+        /// Метод <see cref="OnStartup"/> , который вызывается при запуске приложения. Здесь мы настраиваем контейнер зависимостей и отображаем главное окно.
+        /// </summary>
+        /// <param name="e"></param>
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
