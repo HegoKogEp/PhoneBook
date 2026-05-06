@@ -1,91 +1,22 @@
-﻿<!--Объявление MainViewModel как xmlns:vm в Window-->
 <Window x:Class="PhoneBook.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:local="clr-namespace:PhoneBook.Views"
-        xmlns:vm="clr-namespace:PhoneBook.ViewModels"
         mc:Ignorable="d"
         Title="MainWindow" Height="450" Width="800">
-
-    <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-        </Grid.RowDefinitions>
-
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="*"/>
-            <ColumnDefinition Width="auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <Label Grid.Row="0" Grid.Column="1"
-               Content="Телефонная книга" 
-               FontSize="20" 
-               HorizontalAlignment="Center" 
-               Margin="0 10"/>
-
-        <Label Grid.Row="1" Grid.Column="0" 
-               Content="Имя:" 
-               VerticalAlignment="Center" 
-               HorizontalAlignment="Right"/>
-
-        <!--Привязка свойства Name из MainViewModel к TextBox-->
-        <TextBox Grid.Row="1" Grid.Column="1"
-                 Margin="0 5"
-                 ToolTip="Имя"
-                 HorizontalAlignment="Center"
-                 Width="200"
-                 Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}"/>
-
-        <Label Grid.Row="2" Grid.Column="0" 
-               Content="Номер телефона:" 
-               VerticalAlignment="Center" 
-               HorizontalAlignment="Right"/>
-
-        <!--Привязка свойства Phone из MainViewModel к TextBox-->
-        <TextBox Grid.Row="2" Grid.Column="1"
-                 Margin="0 5" 
-                 ToolTip="Номер телефона"
-                 HorizontalAlignment="Center"
-                 Width="200"
-                 Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}"/>
-
-        <StackPanel Grid.Row="3" Grid.Column="1"
-                    Orientation="Horizontal" 
-                    HorizontalAlignment="Center"
-                    Margin="0 5">
-            <!--Кнопки для добавления и удаления контактов-->
-            <!--К кнопкам привязаны команды из MainViewModel-->
-            <Button Content="Добавить" 
-                    Margin="0 0 5 0"
-                    Command="{Binding AddContactCommand}"/>
-            <Button Content="Удалить"
-                    Command="{Binding RemoveContactCommand}"/>
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    Background="LightGray">
+            <Button Content="Контакты"
+                    Command="{Binding ShowContactsCommand}"
+                    Margin="5" Padding="10 2"/>
+            <Button Content="О программе"
+                    Command="{Binding ShowAboutCommand}"
+                    Margin="5" Padding="10 2"/>
         </StackPanel>
-
-        <!--Привязка коллекции Contacts из MainViewModel к ListBox-->
-        <ListBox Grid.Row="5" Grid.ColumnSpan="3"
-                 ItemsSource="{Binding Contacts}"
-                 SelectedItem="{Binding SelectedContact}"
-                 Margin="5">
-            <ListBox.ItemTemplate>
-                <DataTemplate>
-                    <StackPanel Orientation="Horizontal">
-                        <TextBlock Text="{Binding Name}" 
-                                   Margin="0 0 10 0"
-                                   FontWeight="Bold"/>
-                        <TextBlock Text="{Binding Phone}"/>
-                    </StackPanel>
-                </DataTemplate>
-            </ListBox.ItemTemplate>
-        </ListBox>
-
-    </Grid>
+        <ContentControl Content="{Binding NavigationService.CurrentViewModel}"/>
+    </DockPanel>
 </Window>

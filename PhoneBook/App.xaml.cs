@@ -20,22 +20,25 @@ namespace PhoneBook
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
             var services = new ServiceCollection();
+            
             services.AddSingleton<IDialogService, DialogService>();
-            services.AddTransient<MainViewModel>();
-
-            services.AddSingleton<MainWindow>(provider =>
+            services.AddSingleton<INavigationService, NavigationService>();
+            
+            services.AddSingleton<ContactsListViewModel>();
+            services.AddTransient<AboutViewModel>();
+            services.AddTransient<ContactsListView>();
+            services.AddTransient<ContactEditViewModel>();
+            services.AddSingleton<MainViewModel>();
+            services.AddSingleton<MainWindow>(sp =>
             {
                 var window = new MainWindow();
-                window.DataContext = provider.GetRequiredService<MainViewModel>();
+                window.DataContext = sp.GetRequiredService<MainViewModel>();
                 return window;
             });
-
-            var serviceProvider = services.BuildServiceProvider();
-            var mainWindow = serviceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            
+            var sp = services.BuildServiceProvider();
+            sp.GetRequiredService<MainWindow>().Show();
         }
     }
-
 }

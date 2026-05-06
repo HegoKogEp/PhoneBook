@@ -1,49 +1,76 @@
-# PhoneBook - Документация по проекту
+# PhoneBook - Project Documentation
 
-## Содержание
-1. [Phonebook](#phonebook)
-   1. [App.xaml](#appxaml)
-   2. [App.xaml.cs](#appxamlcs)
-   3. [AssemblyInfo.cs](#assemblyinfocs)
-   4. [PhoneBook.csproj](#phonebookcsproj)
-2. [Phonebook/Commands](#phonebook-commands)
-   1. [RelayCommand.cs](#relaycommandcs)
-3. [Phonebook/Models](#phonebook-models)
-   1. [Contact.cs](#contactcs)
-4. [Phonebook/Services](#phonebook-services)
-   1. [DialogService.cs](#dialogservicecs)
-   2. [IDialogService.cs](#idialogservicecs)
-5. [Phonebook/Viewmodels](#phonebook-viewmodels)
-   1. [MainViewModel.cs](#mainviewmodelcs)
-6. [Phonebook/Viewmodels/Base](#phonebook-viewmodels-base)
-   1. [ObservableObject.cs](#observableobjectcs)
-7. [Phonebook/Views](#phonebook-views)
-   1. [MainWindow.xaml](#mainwindowxaml)
-   2. [MainWindow.xaml.cs](#mainwindowxamlcs)
+## Content
+
+1. [PhoneBook](#phonebook)
+   1. [App.xaml](#app)
+   2. [App.xaml.cs](#appxaml)
+   3. [AssemblyInfo.cs](#assemblyinfo)
+   4. [PhoneBook.csproj](#phonebook)
+2. [PhoneBook\Commands](#commands)
+   1. [RelayCommand.cs](#relaycommand)
+3. [PhoneBook\Models](#models)
+   1. [Contact.cs](#contact)
+4. [PhoneBook\Services](#services)
+   1. [DialogService.cs](#dialogservice)
+   2. [IDialogService.cs](#idialogservice)
+   3. [INavigationAware.cs](#inavigationaware)
+   4. [INavigationService.cs](#inavigationservice)
+   5. [NavigationService.cs](#navigationservice)
+5. [PhoneBook\ViewModels](#viewmodels)
+   1. [AboutViewModel.cs](#aboutviewmodel)
+   2. [ContactEditViewModel.cs](#contacteditviewmodel)
+   3. [ContactsListViewModel.cs](#contactslistviewmodel)
+   4. [MainViewModel.cs](#mainviewmodel)
+6. [PhoneBook\ViewModels\Base](#base)
+   1. [ObservableObject.cs](#observableobject)
+7. [PhoneBook\Views](#views)
+   1. [ContactEditView.xaml](#contacteditview)
+   2. [ContactEditView.xaml.cs](#contacteditviewxaml)
+   3. [ContactsListView.xaml](#contactslistview)
+   4. [ContactsListView.xaml.cs](#contactslistviewxaml)
+   5. [MainWindow.xaml](#mainwindow)
+   6. [MainWindow.xaml.cs](#mainwindowxaml)
+
+## FILE 1: Project Root
+
+## PhoneBook
+
+<a id='phonebook'></a>
 
 ## FILE 1: App.xaml
 
-<a id='appxaml'></a>
+<a id='app'></a>
 
 ```xml
-﻿<Application x:Class="PhoneBook.App"
+<Application x:Class="PhoneBook.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:PhoneBook">
+             xmlns:vm="clr-namespace:PhoneBook.ViewModels"
+             xmlns:v="clr-namespace:PhoneBook.Views">
     <Application.Resources>
-         
+         <DataTemplate DataType="{x:Type vm:ContactsListViewModel}">
+             <v:ContactsListView/>
+         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:AboutViewModel}">
+            
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ContactEditViewModel}">
+            <v:ContactEditView/>
+        </DataTemplate>
     </Application.Resources>
 </Application>
+
 ```
 
 ---
 
 ## FILE 2: App.xaml.cs
 
-<a id='appxamlcs'></a>
+<a id='appxaml'></a>
 
 ```csharp
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using PhoneBook.Services;
 using PhoneBook.ViewModels;
 using PhoneBook.Views;
@@ -65,32 +92,35 @@ namespace PhoneBook
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-
             var services = new ServiceCollection();
+            
             services.AddSingleton<IDialogService, DialogService>();
-            services.AddTransient<MainViewModel>();
-
-            services.AddSingleton<MainWindow>(provider =>
+            services.AddSingleton<INavigationService, NavigationService>();
+            
+            services.AddTransient<ContactsListViewModel>();
+            services.AddTransient<AboutViewModel>();
+            services.AddTransient<ContactsListView>();
+            services.AddSingleton<MainViewModel>();
+            services.AddSingleton<MainWindow>(sp =>
             {
                 var window = new MainWindow();
-                window.DataContext = provider.GetRequiredService<MainViewModel>();
+                window.DataContext = sp.GetRequiredService<MainViewModel>();
                 return window;
             });
-
-            var serviceProvider = services.BuildServiceProvider();
-            var mainWindow = serviceProvider.GetRequiredService<MainWindow>();
-            mainWindow.Show();
+            
+            var sp = services.BuildServiceProvider();
+            sp.GetRequiredService<MainWindow>().Show();
         }
     }
-
 }
+
 ```
 
 ---
 
 ## FILE 3: AssemblyInfo.cs
 
-<a id='assemblyinfocs'></a>
+<a id='assemblyinfo'></a>
 
 ```csharp
 using System.Windows;
@@ -103,16 +133,46 @@ using System.Windows;
                                                 //(used if a resource is not found in the page,
                                                 // app, or any theme specific resource dictionaries)
 )]
+
 ```
 
 ---
 
-## FILE 4: RelayCommand.cs
+## FILE 4: PhoneBook.csproj
 
-<a id='relaycommandcs'></a>
+<a id='phonebook'></a>
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
+  </ItemGroup>
+
+</Project>
+
+```
+
+---
+
+## PhoneBook\Commands
+
+<a id='commands'></a>
+
+## FILE 5: RelayCommand.cs
+
+<a id='relaycommand'></a>
 
 ```csharp
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows.Input;
@@ -175,12 +235,16 @@ public class RelayCommand<T>(Action<object?> execute, Predicate<object?>? canExe
 
 ---
 
-## FILE 5: Contact.cs
+## PhoneBook\Models
 
-<a id='contactcs'></a>
+<a id='models'></a>
+
+## FILE 6: Contact.cs
+
+<a id='contact'></a>
 
 ```csharp
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
@@ -220,40 +284,21 @@ namespace PhoneBook.Models
         }
     }
 }
+
 ```
 
 ---
 
-## FILE 6: PhoneBook.csproj
+## PhoneBook\Services
 
-<a id='phonebookcsproj'></a>
-
-```xml
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
-  <PropertyGroup>
-    <OutputType>WinExe</OutputType>
-    <TargetFramework>net10.0-windows</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <UseWPF>true</UseWPF>
-  </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
-  </ItemGroup>
-
-</Project>
-```
-
----
+<a id='services'></a>
 
 ## FILE 7: DialogService.cs
 
-<a id='dialogservicecs'></a>
+<a id='dialogservice'></a>
 
 ```csharp
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -284,16 +329,17 @@ namespace PhoneBook.Services
 
     }
 }
+
 ```
 
 ---
 
 ## FILE 8: IDialogService.cs
 
-<a id='idialogservicecs'></a>
+<a id='idialogservice'></a>
 
 ```csharp
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -311,68 +357,172 @@ namespace PhoneBook.Services
         bool ShowConfirmation(string message, string title = "Подтверждение");
     }
 }
+
 ```
 
 ---
 
-## FILE 9: ObservableObject.cs
+## FILE 9: INavigationAware.cs
 
-<a id='observableobjectcs'></a>
+<a id='inavigationaware'></a>
 
 ```csharp
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Text;
+namespace PhoneBook.Services;
 
-namespace PhoneBook.ViewModels.Base
+public interface INavigationAware
 {
-    /// <summary>
-    /// Базовый класс для объектов, поддерживающих уведомление об изменении свойств, реализующий интерфейс <see cref="INotifyPropertyChanged"/> и предоставляющий методы для обновления свойств и уведомления об их изменении.
-    /// </summary>
-    public class ObservableObject : INotifyPropertyChanged
+    void OnNavigatedTo(object? parameter);
+}
+```
+
+---
+
+## FILE 10: INavigationService.cs
+
+<a id='inavigationservice'></a>
+
+```csharp
+namespace PhoneBook.Services;
+
+public interface INavigationService
+{
+    object? CurrentViewModel { get; }
+    
+    void NavigateTo<TViewModel>(object? parameter = null) where TViewModel : class;
+}
+```
+
+---
+
+## FILE 11: NavigationService.cs
+
+<a id='navigationservice'></a>
+
+```csharp
+using Microsoft.Extensions.DependencyInjection;
+using PhoneBook.ViewModels.Base;
+
+namespace PhoneBook.Services;
+
+public class NavigationService : ObservableObject, INavigationService
+{
+    private readonly IServiceProvider _serviceProvider;
+    private object? _currentViewModel;
+    public object? CurrentViewModel
     {
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        /// <summary>
-        /// Метод для вызова события <see cref="PropertyChanged"/> при изменении свойства, который принимает имя измененного свойства и уведомляет подписчиков об этом изменении.
-        /// </summary>
-        /// <param name="propertyName">Имя измененного свойства. По умолчанию используется имя вызывающего свойства.</param>
-        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        get => _currentViewModel;
+        private set
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            _currentViewModel = value;
+            OnPropertyChanged();
         }
+    }
+    
+    public NavigationService(IServiceProvider serviceProvider)
+    {
+        _serviceProvider = serviceProvider;
+    }
 
-        /// <summary>
-        /// Метод для обновления значения свойства и вызова события <see cref="PropertyChanged"/> при изменении, который принимает ссылку на поле,
-        /// новое значение и имя свойства, и обновляет значение поля, если оно отличается от текущего, и уведомляет об этом изменение.
-        /// </summary>
-        /// <typeparam name="T">Тип свойства.</typeparam>
-        /// <param name="field">Ссылка на поле, которое хранит значение свойства.</param>
-        /// <param name="value">Новое значение свойства.</param>
-        /// <param name="propertyName">Имя измененного свойства. По умолчанию используется имя вызывающего свойства.</param>
-        /// <returns>Возвращает <see langword="true"/>, если значение свойства было изменено, иначе <see langword="false"/>.</returns>
-        protected bool Set<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+    public void NavigateTo<TViewModel>(object? parameter = null) where TViewModel : class
+    {
+        var vm = _serviceProvider.GetRequiredService<TViewModel>();
+
+        if (vm is INavigationAware navigationAware)
         {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-                return false;
-            field = value;
-            OnPropertyChanged(propertyName);
-            return true;
+            navigationAware.OnNavigatedTo(parameter);
         }
+        
+        CurrentViewModel = vm;
     }
 }
 ```
 
 ---
 
-## FILE 10: MainViewModel.cs
+## PhoneBook\ViewModels
 
-<a id='mainviewmodelcs'></a>
+<a id='viewmodels'></a>
+
+## FILE 12: AboutViewModel.cs
+
+<a id='aboutviewmodel'></a>
 
 ```csharp
-﻿using PhoneBook.Commands;
+namespace PhoneBook.ViewModels;
+
+public class AboutViewModel
+{
+    public string AppName =>  "Телефонная книга MVVM";
+    public string AppVersion =>  "Версия 2.0 (With Navigation)";
+}
+```
+
+---
+
+## FILE 13: ContactEditViewModel.cs
+
+<a id='contacteditviewmodel'></a>
+
+```csharp
+using System.Windows.Input;
+using PhoneBook.Commands;
+using PhoneBook.Models;
+using PhoneBook.Services;
+using PhoneBook.ViewModels.Base;
+
+namespace PhoneBook.ViewModels;
+
+public class ContactEditViewModel : ObservableObject, INavigationAware
+{
+    private readonly INavigationService _navigationService;
+    private Contact _contact = null;
+
+    public string EditName
+    {
+        get => _contact.Name;
+        set
+        {
+            _contact.Name = value;
+            OnPropertyChanged();
+        }
+    }
+    public string  EditPhone
+    {
+        get => _contact.Phone;
+        set
+        {
+            _contact.Phone = value;
+            OnPropertyChanged();
+        }
+    }
+    
+    public ICommand SaveCommand { get; }
+    public ICommand CancelCommand { get; }
+
+    public ContactEditViewModel(INavigationService navigationService)
+    {
+        _navigationService = navigationService;
+        SaveCommand = new RelayCommand( 
+            (() => _navigationService.NavigateTo<ContactsListViewModel>()));
+        CancelCommand = new RelayCommand(
+            () => _navigationService.NavigateTo<ContactsListViewModel>());
+    }
+
+    public void OnNavigatedTo(object? parameter)
+    {
+        if (parameter is Contact contact) _contact = contact;
+    }
+}
+```
+
+---
+
+## FILE 14: ContactsListViewModel.cs
+
+<a id='contactslistviewmodel'></a>
+
+```csharp
+using PhoneBook.Commands;
 using PhoneBook.Models;
 using PhoneBook.Services;
 using PhoneBook.ViewModels.Base;
@@ -393,11 +543,12 @@ namespace PhoneBook.ViewModels
     /// а также команды для добавления и удаления контактов с соответствующими методами проверки возможности выполнения этих действий.
     /// </summary>
     /// /// <remarks>Валидация контакта происходит с помощью метода <see cref="Contact.IsValid"/> из класса <see cref="Contact"/></remarks>
-    public class MainViewModel : ObservableObject
+    public class ContactsListViewModel : ObservableObject
     {
         // Внедрение зависимости для отображения диалогов
         private readonly IDialogService _dialogService;
-
+        private readonly INavigationService _navigationService;
+        
         private string _name = string.Empty;
         private string _phone = string.Empty;
         private Contact _selectedContact;
@@ -426,11 +577,12 @@ namespace PhoneBook.ViewModels
 
         public ICommand RemoveContactCommand { get; }
 
-        public MainViewModel(IDialogService dialogService)
+        public ContactsListViewModel(IDialogService dialogService, INavigationService  navigationService)
         {
             // Инициализация коллекции контактов и команд для добавления и удаления контактов
             // Внедрение зависимости для отображения диалогов
             _dialogService = dialogService;
+            _navigationService = navigationService;
             Contacts = [];
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
             RemoveContactCommand = new RelayCommand(RemoveContact, CanRemoveContact);
@@ -495,25 +647,191 @@ namespace PhoneBook.ViewModels
         }
     }
 }
+
 ```
 
 ---
 
-## FILE 11: MainWindow.xaml
+## FILE 15: MainViewModel.cs
 
-<a id='mainwindowxaml'></a>
+<a id='mainviewmodel'></a>
+
+```csharp
+using System.Windows.Input;
+using PhoneBook.Commands;
+using PhoneBook.Services;
+
+namespace PhoneBook.ViewModels;
+
+public class MainViewModel
+{
+    private readonly INavigationService _navigationService;
+    public INavigationService NavigationService { get =>  _navigationService; }
+    
+    public ICommand ShowContactsCommand { get; }
+    public ICommand ShowAboutCommand { get; }
+
+    public MainViewModel(INavigationService navigationService)
+    {
+        _navigationService = navigationService;
+
+        ShowContactsCommand = new RelayCommand(
+            (() => _navigationService.NavigateTo<ContactsListViewModel>()));
+        ShowAboutCommand = new RelayCommand(
+            () => _navigationService.NavigateTo<AboutViewModel>());
+    }
+    
+}
+```
+
+---
+
+## PhoneBook\ViewModels\Base
+
+<a id='base'></a>
+
+## FILE 16: ObservableObject.cs
+
+<a id='observableobject'></a>
+
+```csharp
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Runtime.CompilerServices;
+using System.Text;
+
+namespace PhoneBook.ViewModels.Base
+{
+    /// <summary>
+    /// Базовый класс для объектов, поддерживающих уведомление об изменении свойств, реализующий интерфейс <see cref="INotifyPropertyChanged"/> и предоставляющий методы для обновления свойств и уведомления об их изменении.
+    /// </summary>
+    public class ObservableObject : INotifyPropertyChanged
+    {
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        /// <summary>
+        /// Метод для вызова события <see cref="PropertyChanged"/> при изменении свойства, который принимает имя измененного свойства и уведомляет подписчиков об этом изменении.
+        /// </summary>
+        /// <param name="propertyName">Имя измененного свойства. По умолчанию используется имя вызывающего свойства.</param>
+        protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        }
+
+        /// <summary>
+        /// Метод для обновления значения свойства и вызова события <see cref="PropertyChanged"/> при изменении, который принимает ссылку на поле,
+        /// новое значение и имя свойства, и обновляет значение поля, если оно отличается от текущего, и уведомляет об этом изменение.
+        /// </summary>
+        /// <typeparam name="T">Тип свойства.</typeparam>
+        /// <param name="field">Ссылка на поле, которое хранит значение свойства.</param>
+        /// <param name="value">Новое значение свойства.</param>
+        /// <param name="propertyName">Имя измененного свойства. По умолчанию используется имя вызывающего свойства.</param>
+        /// <returns>Возвращает <see langword="true"/>, если значение свойства было изменено, иначе <see langword="false"/>.</returns>
+        protected bool Set<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+        {
+            if (EqualityComparer<T>.Default.Equals(field, value))
+                return false;
+            field = value;
+            OnPropertyChanged(propertyName);
+            return true;
+        }
+    }
+}
+
+```
+
+---
+
+## PhoneBook\Views
+
+<a id='views'></a>
+
+## FILE 17: ContactEditView.xaml
+
+<a id='contacteditview'></a>
 
 ```xml
-﻿<!--Объявление MainViewModel как xmlns:vm в Window-->
-<Window x:Class="PhoneBook.Views.MainWindow"
+<UserControl x:Class="PhoneBook.Views.ContactEditView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:PhoneBook.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <TextBlock Grid.Row="0"
+                   Text="Редактирование контакта"
+                   FontSize="20"
+                   FontWeight="Bold"
+                   HorizontalAlignment="Center"/>
+        
+        <TextBox Grid.Row="1"
+                 Text="{Binding EditName, UpdateSourceTrigger=PropertyChanged}"
+                 Margin="5 10"/>
+        <TextBox Grid.Row="2"
+                 Text="{Binding EditPhone, UpdateSourceTrigger=PropertyChanged}"
+                 Margin="5 10"/>
+        
+        <StackPanel Grid.Row="3"
+                    Orientation="Horizontal"
+                    HorizontalAlignment="Center">
+            <Button Content="Сохранить"
+                    Command="{Binding SaveCommand}"
+                    Margin="10 0"/>
+            <Button Content="Отменить"
+                    Margin="10 0"
+                    Command="{Binding CancelCommand}"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
+
+```
+
+---
+
+## FILE 18: ContactEditView.xaml.cs
+
+<a id='contacteditviewxaml'></a>
+
+```csharp
+using System.Windows.Controls;
+
+namespace PhoneBook.Views;
+
+public partial class ContactEditView : UserControl
+{
+    public ContactEditView()
+    {
+        InitializeComponent();
+    }
+}
+```
+
+---
+
+## FILE 19: ContactsListView.xaml
+
+<a id='contactslistview'></a>
+
+```xml
+<!--Объявление MainViewModel как xmlns:vm в Window-->
+<UserControl x:Class="PhoneBook.Views.ContactsListView"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:PhoneBook.Views"
         xmlns:vm="clr-namespace:PhoneBook.ViewModels"
-        mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        mc:Ignorable="d">
 
     <Grid>
         <Grid.RowDefinitions>
@@ -523,6 +841,7 @@ namespace PhoneBook.ViewModels
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
         <Grid.ColumnDefinitions>
@@ -593,18 +912,22 @@ namespace PhoneBook.ViewModels
             </ListBox.ItemTemplate>
         </ListBox>
 
+        <Button Grid.Row="6" Grid.Column="2"
+                Content="Редактировать"
+                Margin="5"/>
     </Grid>
-</Window>
+</UserControl>
+
 ```
 
 ---
 
-## FILE 12: MainWindow.xaml.cs
+## FILE 20: ContactsListView.xaml.cs
 
-<a id='mainwindowxamlcs'></a>
+<a id='contactslistviewxaml'></a>
 
 ```csharp
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Windows;
@@ -621,14 +944,67 @@ namespace PhoneBook.Views
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window
+    public partial class ContactsListView : UserControl
     {
         
-        public MainWindow()
+        public ContactsListView()
         {
             
             InitializeComponent();
         }
+    }
+}
+
+```
+
+---
+
+## FILE 21: MainWindow.xaml
+
+<a id='mainwindow'></a>
+
+```xml
+<Window x:Class="PhoneBook.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:local="clr-namespace:PhoneBook.Views"
+        mc:Ignorable="d"
+        Title="MainWindow" Height="450" Width="800">
+    <DockPanel>
+        <StackPanel DockPanel.Dock="Top"
+                    Orientation="Horizontal"
+                    Background="LightGray">
+            <Button Content="Контакты"
+                    Command="{Binding ShowContactsCommand}"
+                    Margin="5" Padding="10 2"/>
+            <Button Content="О программе"
+                    Command="{Binding ShowAboutCommand}"
+                    Margin="5" Padding="10 2"/>
+        </StackPanel>
+        <ContentControl Content="{Binding NavigationService.CurrentViewModel}"/>
+    </DockPanel>
+</Window>
+
+```
+
+---
+
+## FILE 22: MainWindow.xaml.cs
+
+<a id='mainwindowxaml'></a>
+
+```csharp
+using System.Windows;
+
+namespace PhoneBook.Views;
+
+public partial class MainWindow : Window
+{
+    public MainWindow()
+    {
+        InitializeComponent();
     }
 }
 ```
