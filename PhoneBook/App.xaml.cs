@@ -22,13 +22,18 @@ namespace PhoneBook
             base.OnStartup(e);
             var services = new ServiceCollection();
             
+            // Регистрируем сервисы диалогов и навигации как Singleton
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<INavigationService, NavigationService>();
             
-            services.AddSingleton<ContactsListViewModel>();
+            // ContactsListViewModel решил зарегистрировать как Singleton, чтобы не терялся список контактов при пересоздании ViewModel
+            // В качестве альтернативы можно было завести отдельный Singleton репозиторий или подключить БД, и тогда ContactsListViewModel был бы Transient
+            services.AddSingleton<ContactsListViewModel>(); 
+            
             services.AddTransient<AboutViewModel>();
             services.AddTransient<ContactsListView>();
             services.AddTransient<ContactEditViewModel>();
+            // Регистрируем MainWindow и его MainViewModel как Singleton, так как это одно основное окно, в котором будет менять только ContentControl
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>(sp =>
             {

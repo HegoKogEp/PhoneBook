@@ -4,6 +4,9 @@ using PhoneBook.Services;
 
 namespace PhoneBook.ViewModels;
 
+/// <summary>
+/// ViewModel для основного окна. Содержит в себе команды для кнопок на окне.
+/// </summary>
 public class MainViewModel
 {
     private readonly INavigationService _navigationService;

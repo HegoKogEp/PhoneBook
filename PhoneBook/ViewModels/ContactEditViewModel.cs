@@ -6,6 +6,9 @@ using PhoneBook.ViewModels.Base;
 
 namespace PhoneBook.ViewModels;
 
+/// <summary>
+/// ViewModel для UserControl редактирования контаков. Реализация простая, изменение контакта происходит просто через изменение полей в UserControl
+/// </summary>
 public class ContactEditViewModel : ObservableObject, INavigationAware
 {
     private readonly INavigationService _navigationService;

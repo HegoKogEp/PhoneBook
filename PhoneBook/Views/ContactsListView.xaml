@@ -33,6 +33,7 @@
 
         <Label Grid.Row="1" Grid.Column="0" 
                Content="Имя:" 
+               Margin="10 0"
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 
@@ -46,6 +47,7 @@
 
         <Label Grid.Row="2" Grid.Column="0" 
                Content="Номер телефона:" 
+               Margin="10 0"
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 

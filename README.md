@@ -25,12 +25,14 @@
 6. [PhoneBook\ViewModels\Base](#base)
    1. [ObservableObject.cs](#observableobject)
 7. [PhoneBook\Views](#views)
-   1. [ContactEditView.xaml](#contacteditview)
-   2. [ContactEditView.xaml.cs](#contacteditviewxaml)
-   3. [ContactsListView.xaml](#contactslistview)
-   4. [ContactsListView.xaml.cs](#contactslistviewxaml)
-   5. [MainWindow.xaml](#mainwindow)
-   6. [MainWindow.xaml.cs](#mainwindowxaml)
+   1. [AboutView.xaml](#aboutview)
+   2. [AboutView.xaml.cs](#aboutviewxaml)
+   3. [ContactEditView.xaml](#contacteditview)
+   4. [ContactEditView.xaml.cs](#contacteditviewxaml)
+   5. [ContactsListView.xaml](#contactslistview)
+   6. [ContactsListView.xaml.cs](#contactslistviewxaml)
+   7. [MainWindow.xaml](#mainwindow)
+   8. [MainWindow.xaml.cs](#mainwindowxaml)
 
 ## FILE 1: Project Root
 
@@ -47,13 +49,14 @@
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PhoneBook.ViewModels"
-             xmlns:v="clr-namespace:PhoneBook.Views">
+             xmlns:v="clr-namespace:PhoneBook.Views"
+             ThemeMode="System" >
     <Application.Resources>
          <DataTemplate DataType="{x:Type vm:ContactsListViewModel}">
              <v:ContactsListView/>
          </DataTemplate>
         <DataTemplate DataType="{x:Type vm:AboutViewModel}">
-            
+            <v:AboutView/>
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:ContactEditViewModel}">
             <v:ContactEditView/>
@@ -94,12 +97,18 @@ namespace PhoneBook
             base.OnStartup(e);
             var services = new ServiceCollection();
             
+            // Регистрируем сервисы диалогов и навигации как Singleton
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<INavigationService, NavigationService>();
             
-            services.AddTransient<ContactsListViewModel>();
+            // ContactsListViewModel решил зарегистрировать как Singleton, чтобы не терялся список контактов при пересоздании ViewModel
+            // В качестве альтернативы можно было завести отдельный Singleton репозиторий или подключить БД, и тогда ContactsListViewModel был бы Transient
+            services.AddSingleton<ContactsListViewModel>(); 
+            
             services.AddTransient<AboutViewModel>();
             services.AddTransient<ContactsListView>();
+            services.AddTransient<ContactEditViewModel>();
+            // Регистрируем MainWindow и его MainViewModel как Singleton, так как это одно основное окно, в котором будет менять только ContentControl
             services.AddSingleton<MainViewModel>();
             services.AddSingleton<MainWindow>(sp =>
             {
@@ -151,6 +160,7 @@ using System.Windows;
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <NoWarn>$(NoWarn);WPF0001</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
@@ -450,6 +460,9 @@ public class NavigationService : ObservableObject, INavigationService
 ```csharp
 namespace PhoneBook.ViewModels;
 
+/// <summary>
+/// ViewModel для UserControl AboutView. Содержит в себе два поля с информацией о программе, которые привязаны к TextBlock 
+/// </summary>
 public class AboutViewModel
 {
     public string AppName =>  "Телефонная книга MVVM";
@@ -472,6 +485,9 @@ using PhoneBook.ViewModels.Base;
 
 namespace PhoneBook.ViewModels;
 
+/// <summary>
+/// ViewModel для UserControl редактирования контаков. Реализация простая, изменение контакта происходит просто через изменение полей в UserControl
+/// </summary>
 public class ContactEditViewModel : ObservableObject, INavigationAware
 {
     private readonly INavigationService _navigationService;
@@ -538,7 +554,7 @@ using System.Windows.Input;
 namespace PhoneBook.ViewModels
 {
     /// <summary>
-    /// Класс MainViewModel, который наследуется от <see cref="ObservableObject"/> и представляет собой модель представления для главного окна приложения телефонной книги, 
+    /// Класс MainViewModel, который наследуется от <see cref="ObservableObject"/> и представляет собой модель представления для окна списка контактов приложения телефонной книги, 
     /// содержащий свойства для имени, номера телефона, выбранного контакта и коллекцию контактов, 
     /// а также команды для добавления и удаления контактов с соответствующими методами проверки возможности выполнения этих действий.
     /// </summary>
@@ -577,6 +593,8 @@ namespace PhoneBook.ViewModels
 
         public ICommand RemoveContactCommand { get; }
 
+        public ICommand EditContactCommand { get; }
+        
         public ContactsListViewModel(IDialogService dialogService, INavigationService  navigationService)
         {
             // Инициализация коллекции контактов и команд для добавления и удаления контактов
@@ -586,6 +604,8 @@ namespace PhoneBook.ViewModels
             Contacts = [];
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
             RemoveContactCommand = new RelayCommand(RemoveContact, CanRemoveContact);
+            EditContactCommand = new RelayCommand(() => _navigationService.NavigateTo<ContactEditViewModel>(SelectedContact),
+                    () => SelectedContact != null);
         }
 
         /// <summary>
@@ -628,7 +648,37 @@ namespace PhoneBook.ViewModels
         /// и сбрасывает <see cref="SelectedContact"/> на <see langword="null"/>.
         /// </summary>
         private void RemoveContact()
-        {
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+{
             if (SelectedContact != null)
             {
                 // Запрашиваем подтверждение у пользователя перед удалением контакта
@@ -663,6 +713,9 @@ using PhoneBook.Services;
 
 namespace PhoneBook.ViewModels;
 
+/// <summary>
+/// ViewModel для основного окна. Содержит в себе команды для кнопок на окне.
+/// </summary>
 public class MainViewModel
 {
     private readonly INavigationService _navigationService;
@@ -747,7 +800,59 @@ namespace PhoneBook.ViewModels.Base
 
 <a id='views'></a>
 
-## FILE 17: ContactEditView.xaml
+## FILE 17: AboutView.xaml
+
+<a id='aboutview'></a>
+
+```xml
+<UserControl x:Class="PhoneBook.Views.AboutView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:PhoneBook.Views"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <Grid>
+        <StackPanel VerticalAlignment="Center"
+                    HorizontalAlignment="Center"
+                    Orientation="Vertical">
+            <TextBlock Text="О программе"
+                       FontSize="24"
+                       FontWeight="Bold"/>
+            <TextBlock Text="{Binding AppName}"
+                       FontSize="18"/>
+            <TextBlock Text="{Binding AppVersion}"
+                       FontSize="18"/>
+        </StackPanel>
+    </Grid>
+</UserControl>
+
+```
+
+---
+
+## FILE 18: AboutView.xaml.cs
+
+<a id='aboutviewxaml'></a>
+
+```csharp
+using System.Windows.Controls;
+
+namespace PhoneBook.Views;
+
+public partial class AboutView : UserControl
+{
+    public AboutView()
+    {
+        InitializeComponent();
+    }
+}
+```
+
+---
+
+## FILE 19: ContactEditView.xaml
 
 <a id='contacteditview'></a>
 
@@ -798,7 +903,7 @@ namespace PhoneBook.ViewModels.Base
 
 ---
 
-## FILE 18: ContactEditView.xaml.cs
+## FILE 20: ContactEditView.xaml.cs
 
 <a id='contacteditviewxaml'></a>
 
@@ -818,7 +923,7 @@ public partial class ContactEditView : UserControl
 
 ---
 
-## FILE 19: ContactsListView.xaml
+## FILE 21: ContactsListView.xaml
 
 <a id='contactslistview'></a>
 
@@ -858,6 +963,7 @@ public partial class ContactEditView : UserControl
 
         <Label Grid.Row="1" Grid.Column="0" 
                Content="Имя:" 
+               Margin="10 0"
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 
@@ -871,6 +977,7 @@ public partial class ContactEditView : UserControl
 
         <Label Grid.Row="2" Grid.Column="0" 
                Content="Номер телефона:" 
+               Margin="10 0"
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 
@@ -914,6 +1021,7 @@ public partial class ContactEditView : UserControl
 
         <Button Grid.Row="6" Grid.Column="2"
                 Content="Редактировать"
+                Command="{Binding EditContactCommand}"
                 Margin="5"/>
     </Grid>
 </UserControl>
@@ -922,7 +1030,7 @@ public partial class ContactEditView : UserControl
 
 ---
 
-## FILE 20: ContactsListView.xaml.cs
+## FILE 22: ContactsListView.xaml.cs
 
 <a id='contactslistviewxaml'></a>
 
@@ -959,11 +1067,12 @@ namespace PhoneBook.Views
 
 ---
 
-## FILE 21: MainWindow.xaml
+## FILE 23: MainWindow.xaml
 
 <a id='mainwindow'></a>
 
 ```xml
+<!--Основное окно приложения, в котором будут меняться ContentControl для отображения разных окон-->
 <Window x:Class="PhoneBook.Views.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
@@ -974,8 +1083,7 @@ namespace PhoneBook.Views
         Title="MainWindow" Height="450" Width="800">
     <DockPanel>
         <StackPanel DockPanel.Dock="Top"
-                    Orientation="Horizontal"
-                    Background="LightGray">
+                    Orientation="Horizontal">
             <Button Content="Контакты"
                     Command="{Binding ShowContactsCommand}"
                     Margin="5" Padding="10 2"/>
@@ -991,7 +1099,7 @@ namespace PhoneBook.Views
 
 ---
 
-## FILE 22: MainWindow.xaml.cs
+## FILE 24: MainWindow.xaml.cs
 
 <a id='mainwindowxaml'></a>
 
