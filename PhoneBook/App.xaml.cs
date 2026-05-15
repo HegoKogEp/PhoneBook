@@ -5,6 +5,8 @@ using PhoneBook.Views;
 using System.Configuration;
 using System.Data;
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
+using PhoneBook.PhoneBookDbContext;
 
 namespace PhoneBook
 {
@@ -21,15 +23,15 @@ namespace PhoneBook
         {
             base.OnStartup(e);
             var services = new ServiceCollection();
+
+            services.AddDbContext<AppDbContext>(options => 
+                options.UseSqlServer("Data Source=.;Initial Catalog=PhoneBookDb;Integrated Security=True;TrustServerCertificate=True"));
             
             // Регистрируем сервисы диалогов и навигации как Singleton
             services.AddSingleton<IDialogService, DialogService>();
             services.AddSingleton<INavigationService, NavigationService>();
             
-            // ContactsListViewModel решил зарегистрировать как Singleton, чтобы не терялся список контактов при пересоздании ViewModel
-            // В качестве альтернативы можно было завести отдельный Singleton репозиторий или подключить БД, и тогда ContactsListViewModel был бы Transient
-            services.AddSingleton<ContactsListViewModel>(); 
-            
+            services.AddTransient<ContactsListViewModel>(); 
             services.AddTransient<AboutViewModel>();
             services.AddTransient<ContactsListView>();
             services.AddTransient<ContactEditViewModel>();

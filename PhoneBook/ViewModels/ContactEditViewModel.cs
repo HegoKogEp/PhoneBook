@@ -1,6 +1,6 @@
 using System.Windows.Input;
 using PhoneBook.Commands;
-using PhoneBook.Models;
+using PhoneBook.PhoneBookDbContext;
 using PhoneBook.Services;
 using PhoneBook.ViewModels.Base;
 
@@ -25,10 +25,10 @@ public class ContactEditViewModel : ObservableObject, INavigationAware
     }
     public string  EditPhone
     {
-        get => _contact.Phone;
+        get => _contact.PhoneNumber;
         set
         {
-            _contact.Phone = value;
+            _contact.PhoneNumber = value;
             OnPropertyChanged();
         }
     }

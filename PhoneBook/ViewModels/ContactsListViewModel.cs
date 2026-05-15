@@ -1,5 +1,5 @@
 ﻿using PhoneBook.Commands;
-using PhoneBook.Models;
+using PhoneBook.PhoneBookDbContext;
 using PhoneBook.Services;
 using PhoneBook.ViewModels.Base;
 using System;
@@ -24,6 +24,7 @@ namespace PhoneBook.ViewModels
         // Внедрение зависимости для отображения диалогов
         private readonly IDialogService _dialogService;
         private readonly INavigationService _navigationService;
+        private readonly AppDbContext _appDbContext;
         
         private string _name = string.Empty;
         private string _phone = string.Empty;
@@ -55,13 +56,14 @@ namespace PhoneBook.ViewModels
 
         public ICommand EditContactCommand { get; }
         
-        public ContactsListViewModel(IDialogService dialogService, INavigationService  navigationService)
+        public ContactsListViewModel(IDialogService dialogService, INavigationService  navigationService, AppDbContext appDbContext)
         {
             // Инициализация коллекции контактов и команд для добавления и удаления контактов
             // Внедрение зависимости для отображения диалогов
             _dialogService = dialogService;
             _navigationService = navigationService;
-            Contacts = [];
+            _appDbContext = appDbContext;
+            Contacts = new ObservableCollection<Contact>(_appDbContext.Contacts.ToList());
             AddContactCommand = new RelayCommand(AddContact, CanAddContact);
             RemoveContactCommand = new RelayCommand(RemoveContact, CanRemoveContact);
             EditContactCommand = new RelayCommand(() => _navigationService.NavigateTo<ContactEditViewModel>(SelectedContact),
@@ -74,9 +76,9 @@ namespace PhoneBook.ViewModels
         /// </summary>
         private void AddContact()
         {
-            var contact = new Contact { Name = Name, Phone = Phone };
+            var contact = new Contact { Name = Name, PhoneNumber = Phone };
 
-            if (Contacts.Any(c => c.Phone == contact.Phone))
+            if (Contacts.Any(c => c.PhoneNumber == contact.PhoneNumber))
             {
                 // Если контакт с таким номером телефона уже существует, отображаем предупреждение и не добавляем новый контакт
                 _dialogService.ShowWarning("Контакт с таким номером телефона уже существует!", "Предупреждение");
@@ -85,6 +87,8 @@ namespace PhoneBook.ViewModels
 
             if (contact.IsValid())
             {
+                _appDbContext.Contacts.Add(contact);
+                _appDbContext.SaveChanges();
                 Contacts.Add(contact);
                 Name = string.Empty;
                 Phone = string.Empty;
@@ -108,37 +112,7 @@ namespace PhoneBook.ViewModels
         /// и сбрасывает <see cref="SelectedContact"/> на <see langword="null"/>.
         /// </summary>
         private void RemoveContact()
-        
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{
+        {
             if (SelectedContact != null)
             {
                 // Запрашиваем подтверждение у пользователя перед удалением контакта
@@ -146,6 +120,8 @@ namespace PhoneBook.ViewModels
                 {
                     // Если пользователь подтвердил удаление, отображаем информационное сообщение о том, что контакт был удален, и удаляем его из коллекции контактов
                     _dialogService.ShowInfo($"Контакт {SelectedContact.Name} удален.", "Контакт удален");
+                    _appDbContext.Contacts.Remove(SelectedContact);
+                    _appDbContext.SaveChanges();
                     Contacts.Remove(SelectedContact);
                 }
             }

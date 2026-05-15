@@ -51,7 +51,7 @@
                VerticalAlignment="Center" 
                HorizontalAlignment="Right"/>
 
-        <!--Привязка свойства Phone из MainViewModel к TextBox-->
+        <!--Привязка свойства PhoneNumber из MainViewModel к TextBox-->
         <TextBox Grid.Row="2" Grid.Column="1"
                  Margin="0 5" 
                  ToolTip="Номер телефона"
@@ -83,7 +83,7 @@
                         <TextBlock Text="{Binding Name}" 
                                    Margin="0 0 10 0"
                                    FontWeight="Bold"/>
-                        <TextBlock Text="{Binding Phone}"/>
+                        <TextBlock Text="{Binding PhoneNumber}"/>
                     </StackPanel>
                 </DataTemplate>
             </ListBox.ItemTemplate>

@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:PhoneBook.ViewModels"
              xmlns:v="clr-namespace:PhoneBook.Views"
-             ThemeMode="System" >
+              >
     <Application.Resources>
          <DataTemplate DataType="{x:Type vm:ContactsListViewModel}">
              <v:ContactsListView/>
